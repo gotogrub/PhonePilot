@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="phone_pilot_logo.png" alt="PhonePilot Logo" width="200">
+<img src="assets/phone_pilot_logo.png" alt="PhonePilot Logo" width="200">
 
 # PhonePilot
 
@@ -16,6 +16,12 @@
 
 ---
 
+## Demo
+
+<img src="assets/picture_1.png" alt="PhonePilot UI" width="800">
+
+---
+
 ## What is PhonePilot?
 
 PhonePilot is a fully local AI agent that understands your Android screen through Vision-Language Models and executes actions via ADB. Give it a command in text or voice — it sees the screen, plans the steps, and taps/swipes/types for you.
@@ -24,16 +30,46 @@ PhonePilot is a fully local AI agent that understands your Android screen throug
 "Open Telegram and send mom that I'll be home in an hour"
 ```
 
-The agent captures a screenshot, analyzes it with a VLM (Qwen2.5-VL), determines what to tap, executes the action, verifies the result, and repeats until the task is done.
+The agent captures a screenshot, analyzes it with a VLM (Qwen2.5-VL via Ollama), determines what to tap, executes the action, verifies the result, and repeats until the task is done.
 
 ### Key Features
 
 - **Vision-Language AI** — Understands screen content through Qwen2.5-VL, LLaVA, or any Ollama-compatible model
-- **Voice Control** — Hands-free operation with wake word detection, STT (Whisper), and TTS (Piper)
-- **Action Memory** — Remembers past actions, learns from failures, builds app knowledge
-- **Scenario Automation** — Record, replay, and schedule action sequences
+- **Live Screen** — Real-time WebSocket stream of your device screen in the browser
+- **Action Log** — See every step the agent takes, with reasoning and results
 - **Multi-Device** — Control multiple Android devices simultaneously via USB or WiFi
 - **Fully Local** — Everything runs on your machine. Zero cloud dependencies
+
+---
+
+## Quick Start
+
+### Prerequisites
+
+- Docker & Docker Compose
+- [Ollama](https://ollama.ai/) with a VLM model
+- Android device with USB debugging enabled
+- ADB installed (`adb devices` shows your device)
+
+### Setup
+
+```bash
+git clone https://github.com/gotogrub/PhonePilot.git
+cd PhonePilot
+
+# 1. Install & start Ollama on the host
+curl -fsSL https://ollama.ai/install.sh | sh
+ollama pull qwen2.5vl:7b
+
+# 2. Start ADB server
+adb start-server
+
+# 3. Start services
+docker compose up -d
+
+# 4. Open the UI
+open http://localhost:3000
+```
 
 ---
 
@@ -73,73 +109,14 @@ The agent captures a screenshot, analyzes it with a VLM (Qwen2.5-VL), determines
               └─────────────────┘
 ```
 
----
+### How it works
 
-## Quick Start
-
-### Prerequisites
-
-- Python 3.11+
-- Node.js 20+
-- Docker & Docker Compose
-- [Ollama](https://ollama.ai/) with a VLM model
-- Android device with USB debugging enabled
-- ADB installed (`adb devices` shows your device)
-
-### Setup
-
-```bash
-git clone https://github.com/gotogrub/PhonePilot.git
-cd PhonePilot
-
-# 1. Install & start Ollama on the host
-curl -fsSL https://ollama.ai/install.sh | sh
-ollama pull qwen2.5-vl:7b
-
-# 2. Start ADB server (accessible from Docker)
-adb -a -P 5037 nodaemon server &
-
-# 3. Start services
-docker compose up -d
-
-# 4. Open the UI
-open http://localhost:3000
-```
-
-> Ollama runs on the host by default so it can be shared with other services.
-> To run Ollama in Docker instead, see [docs/SETUP.md](docs/SETUP.md#running-ollama-in-docker-alternative).
-
-### Development
-
-```bash
-# Start dev environment with hot-reload
-./scripts/dev.sh
-
-# Or run components separately:
-
-# Backend
-cd backend
-pip install -r requirements-dev.txt
-uvicorn app.main:app --reload
-
-# Frontend
-cd frontend
-npm install
-npm run dev
-```
-
-### CLI Usage
-
-```bash
-# Execute a command
-phonepilot "open Chrome and search for weather"
-
-# Specify device
-phonepilot -d DEVICE_ID "take a screenshot"
-
-# Start the API server
-phonepilot --server
-```
+1. User sends a command (text or voice)
+2. Agent captures a screenshot from the device via ADB
+3. Screenshot is resized and sent to VLM (Qwen2.5-VL) with the Qwen `mobile_use` tool-calling format
+4. VLM returns the next action (tap, swipe, type, etc.) with normalized 0-999 coordinates
+5. Agent converts coordinates to real screen pixels and executes via ADB
+6. Repeat until the task is complete or max steps reached
 
 ---
 
@@ -164,8 +141,7 @@ phonepilot/
 │       ├── hooks/           # WebSocket, device hooks
 │       ├── stores/          # Zustand state management
 │       └── api/             # API client
-├── docker/                  # Ollama, nginx configs
-├── scripts/                 # Setup, dev, model download
+├── assets/                  # Logo, screenshots, demo videos
 ├── docs/                    # Documentation
 └── docker-compose.yml
 ```
@@ -187,9 +163,7 @@ Base URL: `http://localhost:8000`
 | GET | `/models` | List available VLM models |
 | POST | `/models/switch` | Switch active model |
 
-Full API documentation available at `http://localhost:8000/docs` (Swagger UI).
-
-See [docs/API.md](docs/API.md) for detailed reference.
+Full API docs at `http://localhost:8000/docs` (Swagger UI).
 
 ---
 
@@ -209,6 +183,53 @@ See [docs/API.md](docs/API.md) for detailed reference.
 | Qwen2.5-VL-3B | ~6GB | Good |
 | Qwen2.5-VL-7B | ~14GB | Great |
 | LLaVA 1.6 7B | ~14GB | Good |
+
+---
+
+## TODO
+
+### Agent Intelligence
+- [ ] Proper task queue with status tracking (pending/running/done/failed)
+- [ ] Task cancellation — stop a running task from the UI
+- [ ] Retry logic with error analysis — re-prompt VLM on action failure
+- [ ] Completion verification — take a final screenshot and confirm task is done
+- [ ] Multi-step planning — break complex commands into sub-tasks
+- [ ] Action history passed as context to VLM for better decisions
+
+### UI / UX
+- [ ] Settings panel — configure model, max steps, action delay from the UI
+- [ ] Task cancel button in the frontend
+- [ ] Better action log formatting — show reasoning, not raw JSON
+- [ ] Loading/progress indicator during task execution
+- [ ] Device screen touch interaction — tap on the live stream to send taps
+- [ ] Dark/light theme toggle
+
+### Memory & Learning
+- [ ] SQLite database for action history
+- [ ] Agent remembers previous actions and app layouts
+- [ ] Semantic search over past actions
+- [ ] Learn from failures — remember what didn't work
+
+### Voice Control
+- [ ] Whisper.cpp integration for STT
+- [ ] Piper TTS for voice feedback
+- [ ] Wake word detection ("Hey Pilot")
+- [ ] Hands-free continuous listening mode
+
+### Automation
+- [ ] Scenario recorder — record and replay action sequences
+- [ ] Scenario editor in the UI
+- [ ] Cron-like scheduler for recurring tasks
+- [ ] Conditional logic (if screen contains X, do Y)
+- [ ] Import/export scenarios as YAML
+
+### Infrastructure
+- [ ] CLI tool (`phonepilot "open Chrome"`)
+- [ ] WiFi ADB support (wireless device connection)
+- [ ] scrcpy integration for lower-latency streaming
+- [ ] Multi-model support — switch between models from the UI
+- [ ] Benchmark suite for accuracy testing
+- [ ] Test coverage >70%
 
 ---
 
