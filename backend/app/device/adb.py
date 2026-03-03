@@ -2,6 +2,12 @@ import asyncio
 import subprocess
 from dataclasses import dataclass
 
+from app.config import settings
+
+
+def _adb_base_cmd() -> list[str]:
+    return ["adb", "-H", settings.adb_host, "-P", str(settings.adb_port)]
+
 
 @dataclass
 class ADBDevice:
@@ -11,7 +17,7 @@ class ADBDevice:
     connection_type: str = "usb"
 
     async def _run(self, *args: str) -> str:
-        cmd = ["adb", "-s", self.device_id, *args]
+        cmd = [*_adb_base_cmd(), "-s", self.device_id, *args]
         proc = await asyncio.create_subprocess_exec(
             *cmd,
             stdout=asyncio.subprocess.PIPE,
@@ -23,8 +29,9 @@ class ADBDevice:
         return stdout.decode().strip()
 
     async def screenshot(self) -> bytes:
+        cmd = [*_adb_base_cmd(), "-s", self.device_id, "exec-out", "screencap", "-p"]
         proc = await asyncio.create_subprocess_exec(
-            "adb", "-s", self.device_id, "exec-out", "screencap", "-p",
+            *cmd,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
         )
@@ -83,7 +90,7 @@ class ADBDevice:
     @staticmethod
     def list_connected() -> list[str]:
         result = subprocess.run(
-            ["adb", "devices"],
+            [*_adb_base_cmd(), "devices"],
             capture_output=True, text=True,
         )
         devices = []

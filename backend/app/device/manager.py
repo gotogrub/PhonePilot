@@ -1,6 +1,6 @@
 import asyncio
 
-from app.device.adb import ADBDevice
+from app.device.adb import ADBDevice, _adb_base_cmd
 
 
 class DeviceManager:
@@ -39,7 +39,7 @@ class DeviceManager:
     async def connect_wifi(self, address: str, port: int = 5555) -> ADBDevice:
         target = f"{address}:{port}"
         proc = await asyncio.create_subprocess_exec(
-            "adb", "connect", target,
+            *_adb_base_cmd(), "connect", target,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
         )
@@ -61,7 +61,7 @@ class DeviceManager:
         if device_id in self._devices:
             if ":" in device_id:
                 proc = await asyncio.create_subprocess_exec(
-                    "adb", "disconnect", device_id,
+                    *_adb_base_cmd(), "disconnect", device_id,
                     stdout=asyncio.subprocess.PIPE,
                 )
                 await proc.communicate()
