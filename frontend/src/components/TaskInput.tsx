@@ -11,9 +11,17 @@ export function TaskInput() {
     e.preventDefault();
     if (!command.trim() || isExecuting) return;
 
+    const submittedCommand = command;
     setExecuting(true);
+    setCommand("");
+    addAction({
+      step: -1,
+      action: submittedCommand,
+      result: "pending",
+      timestamp: Date.now(),
+    });
     try {
-      const result = await api.executeTask(command, selectedDevice ?? undefined);
+      const result = await api.executeTask(submittedCommand, selectedDevice ?? undefined);
       for (const action of result.actions) {
         addAction({
           step: (action as { step: number }).step,
@@ -25,13 +33,12 @@ export function TaskInput() {
     } catch (err) {
       addAction({
         step: 0,
-        action: command,
+        action: submittedCommand,
         result: `Error: ${err}`,
         timestamp: Date.now(),
       });
     } finally {
       setExecuting(false);
-      setCommand("");
     }
   };
 

@@ -22,18 +22,30 @@ export function ActionLog() {
             No actions yet. Enter a command to get started.
           </p>
         ) : (
-          actions.map((entry, i) => (
-            <div
-              key={i}
-              className="text-sm border-l-2 border-pilot-600 pl-3 py-1"
-            >
-              <div className="text-gray-300 font-mono">{entry.action}</div>
-              <div className="text-gray-500 text-xs mt-1">
-                {entry.result} &middot;{" "}
-                {new Date(entry.timestamp).toLocaleTimeString()}
+          actions.map((entry, i) =>
+            entry.step === -1 ? (
+              <div
+                key={i}
+                className="text-sm bg-gray-800 rounded-lg px-3 py-2 mt-2 first:mt-0"
+              >
+                <div className="text-pilot-400 font-medium">&gt; {entry.action}</div>
+                <div className="text-gray-500 text-xs mt-1">
+                  {new Date(entry.timestamp).toLocaleTimeString()}
+                </div>
               </div>
-            </div>
-          ))
+            ) : (
+              <div
+                key={i}
+                className="text-sm border-l-2 border-pilot-600 pl-3 py-1"
+              >
+                <div className="text-gray-300 font-mono">{entry.action}</div>
+                <div className="text-gray-500 text-xs mt-1">
+                  {entry.result} &middot;{" "}
+                  {new Date(entry.timestamp).toLocaleTimeString()}
+                </div>
+              </div>
+            )
+          )
         )}
       </div>
     </div>
