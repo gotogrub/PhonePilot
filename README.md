@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="phone_pilot_logo.png" alt="PhonePilot Logo" width="200">
+
 # PhonePilot
 
 **Local AI agent for Android automation via voice and text**

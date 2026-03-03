@@ -34,7 +34,9 @@ class ADBDevice:
     async def tap(self, x: int, y: int):
         await self._run("shell", "input", "tap", str(x), str(y))
 
-    async def swipe(self, x: int, y: int, direction: str = "up", distance: int = 500, duration: int = 300):
+    async def swipe(
+        self, x: int, y: int, direction: str = "up", distance: int = 500, duration: int = 300,
+    ):
         dx, dy = {
             "up": (0, -distance),
             "down": (0, distance),
@@ -48,7 +50,9 @@ class ADBDevice:
         )
 
     async def type_text(self, text: str):
-        escaped = text.replace(" ", "%s").replace("&", "\\&").replace("<", "\\<").replace(">", "\\>")
+        escaped = (
+            text.replace(" ", "%s").replace("&", "\\&").replace("<", "\\<").replace(">", "\\>")
+        )
         await self._run("shell", "input", "text", escaped)
 
     async def press_back(self):
