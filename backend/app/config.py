@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379/0"
 
     ollama_base_url: str = "http://localhost:11434"
-    default_model: str = "qwen2.5-vl:7b"
+    default_model: str = "qwen2.5vl:7b"
 
     adb_host: str = "127.0.0.1"
     adb_port: int = 5037

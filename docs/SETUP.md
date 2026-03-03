@@ -185,7 +185,7 @@ docker compose -f docker-compose.yml -f docker-compose.ollama.yml logs ollama
 
 ### Devices show as empty in UI
 
-The backend connects to the host's ADB server via `host.docker.internal:5037`. Make sure:
+The backend uses `network_mode: host` and connects to the ADB server at `127.0.0.1:5037`. Make sure:
 1. ADB server is running on the host (`adb -a -P 5037 nodaemon server &`)
 2. The phone is authorized and visible (`adb devices` on host shows it)
 
