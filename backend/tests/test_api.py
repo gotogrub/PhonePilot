@@ -1,12 +1,26 @@
+import shutil
+
 import pytest
 
+requires_ollama = pytest.mark.skipif(
+    not shutil.which("ollama"),
+    reason="Ollama not available",
+)
 
+requires_adb = pytest.mark.skipif(
+    not shutil.which("adb"),
+    reason="ADB not available",
+)
+
+
+@requires_ollama
 @pytest.mark.asyncio
 async def test_list_models(client):
     response = await client.get("/models")
     assert response.status_code in (200, 500)
 
 
+@requires_adb
 @pytest.mark.asyncio
 async def test_list_devices(client):
     response = await client.get("/devices")
