@@ -7,7 +7,7 @@ services:
       - "host.docker.internal:host-gateway"
     environment:
       - PHONEPILOT_REDIS_URL=redis://redis:6379/0
-      - PHONEPILOT_OLLAMA_BASE_URL=http://ollama:11434
+      - PHONEPILOT_OLLAMA_BASE_URL=http://host.docker.internal:11434
       - PHONEPILOT_DATABASE_URL=sqlite+aiosqlite:///./data/phonepilot.db
       - PHONEPILOT_ADB_HOST=host.docker.internal
       - PHONEPILOT_ADB_PORT=5037
@@ -15,7 +15,6 @@ services:
       - ./data:/app/data
     depends_on:
       - redis
-      - ollama
     restart: unless-stopped
 
   frontend:
@@ -34,21 +33,5 @@ services:
       - redis_data:/data
     restart: unless-stopped
 
-  ollama:
-    image: ollama/ollama:latest
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama_data:/root/.ollama
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
-    restart: unless-stopped
-
 volumes:
   redis_data:
-  ollama_data:

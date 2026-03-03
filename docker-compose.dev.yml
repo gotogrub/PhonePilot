@@ -3,10 +3,14 @@ services:
     build: ./backend
     ports:
       - "8000:8000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
       - PHONEPILOT_DEBUG=true
       - PHONEPILOT_REDIS_URL=redis://redis:6379/0
-      - PHONEPILOT_OLLAMA_BASE_URL=http://ollama:11434
+      - PHONEPILOT_OLLAMA_BASE_URL=http://host.docker.internal:11434
+      - PHONEPILOT_ADB_HOST=host.docker.internal
+      - PHONEPILOT_ADB_PORT=5037
     volumes:
       - ./backend:/app
       - ./data:/app/data
