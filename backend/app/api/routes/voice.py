@@ -1,4 +1,4 @@
-from fastapi import APIRouter, UploadFile, File
+from fastapi import APIRouter, File, UploadFile
 from pydantic import BaseModel
 
 router = APIRouter()
