@@ -29,8 +29,9 @@ async def save_action(session: AsyncSession, action_data: dict):
 
 
 async def get_recent_tasks(session: AsyncSession, limit: int = 10) -> list:
-    from app.memory.models import TaskHistory
     from sqlalchemy import select
+
+    from app.memory.models import TaskHistory
     result = await session.execute(
         select(TaskHistory).order_by(TaskHistory.created_at.desc()).limit(limit)
     )
