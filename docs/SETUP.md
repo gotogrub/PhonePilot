@@ -18,7 +18,7 @@
 
 ### Software
 
-- [Ollama](https://ollama.ai/) — local LLM runtime
+- [Ollama](https://ollama.ai/) — local LLM runtime (installed on the host)
 - [ADB](https://developer.android.com/tools/adb) — Android Debug Bridge
 - [scrcpy](https://github.com/Genymobile/scrcpy) — screen mirroring (optional)
 
@@ -26,60 +26,83 @@
 
 ## Installation
 
-### Automated Setup
+### 1. Clone and configure
 
 ```bash
-git clone https://github.com/your-username/phonepilot.git
-cd phonepilot
-./scripts/setup.sh
-```
-
-This will:
-1. Check prerequisites (Docker, ADB)
-2. Create `.env` from template
-3. Build Docker containers
-4. Pull the Qwen2.5-VL model
-5. Start all services
-
-### Manual Setup
-
-#### 1. Clone and configure
-
-```bash
-git clone https://github.com/your-username/phonepilot.git
-cd phonepilot
+git clone https://github.com/gotogrub/PhonePilot.git
+cd PhonePilot
 cp .env.example .env
 ```
 
-Edit `.env` to match your setup.
+### 2. Install and start Ollama on the host
 
-#### 2. Install Ollama and pull a model
+Ollama runs on the host machine by default. This is the recommended setup, especially if other services (Open WebUI, etc.) also depend on it.
 
 ```bash
 curl -fsSL https://ollama.ai/install.sh | sh
 ollama pull qwen2.5-vl:7b
+ollama serve
 ```
 
-#### 3. Start with Docker Compose
+Verify Ollama is accessible:
+```bash
+curl http://localhost:11434/api/tags
+```
+
+### 3. Start ADB server on the host
+
+The ADB server must run on the host so that Docker containers can connect to it:
+
+```bash
+# Start ADB server listening on all interfaces
+adb kill-server
+adb -a -P 5037 nodaemon server &
+
+# Verify your device is visible
+adb devices
+```
+
+### 4. Start PhonePilot
 
 ```bash
 docker compose up -d
 ```
 
-#### 4. Verify
+This starts 3 services:
+- **backend** (FastAPI) — port 8000
+- **frontend** (React + nginx) — port 3000
+- **redis** — port 6379
+
+### 5. Verify
 
 ```bash
-# Check services
 docker compose ps
-
-# Check ADB
-adb devices
-
-# Open UI
-open http://localhost:3000
-
-# Check API
 curl http://localhost:8000/devices
+```
+
+Open `http://YOUR_SERVER_IP:3000` in a browser.
+
+---
+
+## Running Ollama in Docker (alternative)
+
+If you prefer running Ollama inside Docker instead of on the host:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.ollama.yml up -d
+```
+
+This adds an Ollama container with GPU passthrough and overrides the backend to connect to it. Requires [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html):
+
+```bash
+sudo apt install nvidia-container-toolkit
+sudo systemctl restart docker
+```
+
+Then pull a model inside the container:
+
+```bash
+docker compose exec ollama ollama pull qwen2.5-vl:7b
 ```
 
 ---
@@ -141,18 +164,30 @@ curl -X POST http://localhost:8000/devices/connect \
 
 ```bash
 adb kill-server
-adb start-server
+adb -a -P 5037 nodaemon server &
 adb devices
 ```
 
-Make sure USB debugging is enabled and the computer is authorized.
+Make sure USB debugging is enabled and the computer is authorized on the phone.
 
 ### Ollama connection refused
 
-Ensure Ollama is running:
+Ensure Ollama is running on the host:
 ```bash
 ollama serve
+curl http://localhost:11434/api/tags
 ```
+
+If using Docker Ollama, check the container:
+```bash
+docker compose -f docker-compose.yml -f docker-compose.ollama.yml logs ollama
+```
+
+### Devices show as empty in UI
+
+The backend connects to the host's ADB server via `host.docker.internal:5037`. Make sure:
+1. ADB server is running on the host (`adb -a -P 5037 nodaemon server &`)
+2. The phone is authorized and visible (`adb devices` on host shows it)
 
 ### GPU not detected in Docker
 

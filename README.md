@@ -89,23 +89,25 @@ The agent captures a screenshot, analyzes it with a VLM (Qwen2.5-VL), determines
 ### Setup
 
 ```bash
-git clone https://github.com/your-username/phonepilot.git
-cd phonepilot
+git clone https://github.com/gotogrub/PhonePilot.git
+cd PhonePilot
 
-# Automated setup
-./scripts/setup.sh
-
-# Or manual setup:
-
-# 1. Pull the VLM model
+# 1. Install & start Ollama on the host
+curl -fsSL https://ollama.ai/install.sh | sh
 ollama pull qwen2.5-vl:7b
 
-# 2. Start services
+# 2. Start ADB server (accessible from Docker)
+adb -a -P 5037 nodaemon server &
+
+# 3. Start services
 docker compose up -d
 
-# 3. Open the UI
+# 4. Open the UI
 open http://localhost:3000
 ```
+
+> Ollama runs on the host by default so it can be shared with other services.
+> To run Ollama in Docker instead, see [docs/SETUP.md](docs/SETUP.md#running-ollama-in-docker-alternative).
 
 ### Development
 
