@@ -1,20 +1,15 @@
 services:
   backend:
     build: ./backend
-    ports:
-      - "8000:8000"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+    network_mode: host
     environment:
-      - PHONEPILOT_REDIS_URL=redis://redis:6379/0
-      - PHONEPILOT_OLLAMA_BASE_URL=http://host.docker.internal:11434
+      - PHONEPILOT_REDIS_URL=redis://127.0.0.1:6379/0
+      - PHONEPILOT_OLLAMA_BASE_URL=http://127.0.0.1:11434
       - PHONEPILOT_DATABASE_URL=sqlite+aiosqlite:///./data/phonepilot.db
-      - PHONEPILOT_ADB_HOST=host.docker.internal
+      - PHONEPILOT_ADB_HOST=127.0.0.1
       - PHONEPILOT_ADB_PORT=5037
     volumes:
       - ./data:/app/data
-    depends_on:
-      - redis
     restart: unless-stopped
 
   frontend:
