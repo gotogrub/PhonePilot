@@ -8,7 +8,7 @@ class ActionExecutor:
     async def execute(self, device, action: Action) -> dict:
         try:
             match action.action_type:
-                case "tap":
+                case "tap" | "click":
                     await device.tap(action.x, action.y)
                 case "swipe":
                     await device.swipe(
