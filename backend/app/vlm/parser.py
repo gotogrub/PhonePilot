@@ -14,7 +14,36 @@ def parse_vlm_response(raw: str) -> dict:
         except json.JSONDecodeError:
             pass
 
-    return {"reasoning": raw, "action": "", "complete": False}
+    return _parse_freeform(raw)
+
+
+def _parse_freeform(text: str) -> dict:
+    result = {"reasoning": text, "action": "", "complete": False}
+    text_lower = text.lower()
+
+    patterns = {
+        "tap": r"tap\s+(?:at\s+)?(\d+)\s*,?\s*(\d+)",
+        "swipe": r"swipe\s+(up|down|left|right)",
+        "type": r"type\s+[\"'](.+?)[\"']",
+    }
+
+    for action, pattern in patterns.items():
+        match = re.search(pattern, text_lower)
+        if match:
+            result["action"] = action
+            if action == "tap":
+                result["x"] = int(match.group(1))
+                result["y"] = int(match.group(2))
+            elif action == "swipe":
+                result["direction"] = match.group(1)
+            elif action == "type":
+                result["text"] = match.group(1)
+            break
+
+    if any(w in text_lower for w in ["complete", "done", "finished"]):
+        result["complete"] = True
+
+    return result
 
 
 def _extract_tool_call(text: str) -> dict | None:
