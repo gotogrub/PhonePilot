@@ -66,7 +66,8 @@ class Planner:
 
         if action_type == "tap":
             if x is None or y is None:
-                return Plan(is_complete=False, reasoning=f"skip: tap without coordinates — {reasoning}")
+                msg = f"skip: tap without coordinates — {reasoning}"
+                return Plan(is_complete=False, reasoning=msg)
 
         if action_type == "swipe":
             if x is None:
