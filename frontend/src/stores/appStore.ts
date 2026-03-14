@@ -1,9 +1,15 @@
 import { create } from "zustand";
 
-interface ActionEntry {
+export interface ActionEntry {
   step: number;
-  action: string;
-  result: string;
+  actionType?: string;
+  reasoning?: string;
+  coordinates?: { x: number; y: number };
+  text?: string;
+  direction?: string;
+  status: "success" | "error" | "skipped" | "pending";
+  error?: string;
+  label: string;
   timestamp: number;
 }
 
@@ -20,6 +26,7 @@ interface AppState {
   actions: ActionEntry[];
   isExecuting: boolean;
   currentFrame: string | null;
+  abortController: AbortController | null;
 
   setSelectedDevice: (id: string | null) => void;
   setDevices: (devices: Device[]) => void;
@@ -27,14 +34,17 @@ interface AppState {
   clearActions: () => void;
   setExecuting: (value: boolean) => void;
   setCurrentFrame: (frame: string | null) => void;
+  setAbortController: (ctrl: AbortController | null) => void;
+  cancelTask: () => void;
 }
 
-export const useAppStore = create<AppState>((set) => ({
+export const useAppStore = create<AppState>((set, get) => ({
   selectedDevice: null,
   devices: [],
   actions: [],
   isExecuting: false,
   currentFrame: null,
+  abortController: null,
 
   setSelectedDevice: (id) => set({ selectedDevice: id }),
   setDevices: (devices) => set({ devices }),
@@ -43,4 +53,10 @@ export const useAppStore = create<AppState>((set) => ({
   clearActions: () => set({ actions: [] }),
   setExecuting: (value) => set({ isExecuting: value }),
   setCurrentFrame: (frame) => set({ currentFrame: frame }),
+  setAbortController: (ctrl) => set({ abortController: ctrl }),
+  cancelTask: () => {
+    const ctrl = get().abortController;
+    if (ctrl) ctrl.abort();
+    set({ isExecuting: false, abortController: null });
+  },
 }));

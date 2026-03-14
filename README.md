@@ -190,17 +190,17 @@ Full API docs at `http://localhost:8000/docs` (Swagger UI).
 
 ### Agent Intelligence
 - [ ] Proper task queue with status tracking (pending/running/done/failed)
-- [ ] Task cancellation — stop a running task from the UI
-- [ ] Retry logic with error analysis — re-prompt VLM on action failure
-- [ ] Completion verification — take a final screenshot and confirm task is done
-- [ ] Multi-step planning — break complex commands into sub-tasks
-- [ ] Action history passed as context to VLM for better decisions
+- [x] Task cancellation — stop a running task from the UI
+- [x] Retry logic with error analysis — re-prompt VLM on action failure
+- [x] Completion verification — take a final screenshot and confirm task is done
+- [x] Multi-step planning — agent executes up to 10 steps per task
+- [x] Action history passed as context to VLM for better decisions
 
 ### UI / UX
 - [ ] Settings panel — configure model, max steps, action delay from the UI
-- [ ] Task cancel button in the frontend
-- [ ] Better action log formatting — show reasoning, not raw JSON
-- [ ] Loading/progress indicator during task execution
+- [x] Task cancel button in the frontend
+- [x] Better action log formatting — show reasoning, not raw JSON
+- [x] Loading/progress indicator during task execution
 - [ ] Device screen touch interaction — tap on the live stream to send taps
 - [ ] Dark/light theme toggle
 

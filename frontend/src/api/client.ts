@@ -17,10 +17,11 @@ async function request<T>(
 export const api = {
   listDevices: () => request<Device[]>("/devices"),
 
-  executeTask: (command: string, deviceId?: string) =>
+  executeTask: (command: string, deviceId?: string, signal?: AbortSignal) =>
     request<TaskResponse>("/tasks", {
       method: "POST",
       body: JSON.stringify({ command, device_id: deviceId }),
+      signal,
     }),
 
   listModels: () => request<ModelInfo[]>("/models"),
