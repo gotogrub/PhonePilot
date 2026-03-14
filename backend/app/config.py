@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     adb_port: int = 5037
 
     screenshot_dir: str = "./screenshots"
+    max_steps: int = 10
     max_retries: int = 3
     action_delay: float = 1.0
 

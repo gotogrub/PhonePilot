@@ -18,7 +18,7 @@ class Agent:
         self.vlm = OllamaClient()
         self.planner = Planner()
         self.executor = ActionExecutor()
-        self.max_steps = settings.max_retries
+        self.max_steps = settings.max_steps
 
     async def execute(self, command: str, device, model: str | None = None, db=None) -> AgentResult:
         result = AgentResult()
@@ -36,6 +36,14 @@ class Agent:
             if plan.is_complete:
                 result.success = True
                 break
+
+            if plan.next_action is None:
+                result.actions.append({
+                    "step": step,
+                    "action": {"skipped": plan.reasoning},
+                    "result": {"status": "skipped"},
+                })
+                continue
 
             action_result = await self.executor.execute(device, plan.next_action)
             result.actions.append({
