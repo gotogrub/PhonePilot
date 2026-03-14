@@ -23,6 +23,12 @@ class Agent:
     async def execute(self, command: str, device, model: str | None = None, db=None) -> AgentResult:
         result = AgentResult()
         current_model = model or settings.default_model
+        action_history: list[str] = []
+
+        try:
+            screen_w, screen_h = await device.get_screen_resolution()
+        except Exception:
+            screen_w, screen_h = 1080, 2340
 
         for step in range(self.max_steps):
             screenshot = await device.screenshot()
@@ -30,6 +36,9 @@ class Agent:
                 screenshot=screenshot,
                 command=command,
                 model=current_model,
+                history=action_history if action_history else None,
+                screen_w=screen_w,
+                screen_h=screen_h,
             )
 
             plan = self.planner.plan(analysis)
@@ -46,9 +55,15 @@ class Agent:
                 continue
 
             action_result = await self.executor.execute(device, plan.next_action)
+            action_desc = plan.next_action.action_type
+            if plan.next_action.text:
+                action_desc += f" '{plan.next_action.text}'"
+            action_history.append(action_desc)
+
             result.actions.append({
                 "step": step,
                 "action": plan.next_action.to_dict(),
+                "reasoning": plan.reasoning,
                 "result": action_result,
             })
 
@@ -57,6 +72,9 @@ class Agent:
                     screenshot=await device.screenshot(),
                     command=f"Previous action failed: {action_result['error']}. {command}",
                     model=current_model,
+                    history=action_history,
+                    screen_w=screen_w,
+                    screen_h=screen_h,
                 )
                 plan = self.planner.plan(retry_analysis)
 
